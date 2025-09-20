@@ -81,3 +81,11 @@ export const verification = boilermate.table("verification", (d) => ({
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 }));
+
+export const userRating = boilermate.table("user_rating", (d)=> ({
+  userId: d.text("user_Id").primaryKey(),
+  reviewerId: d.text("reviewer_Id").primaryKey(),
+  star: d.text("star").notNull(),
+  review: d.text("review").notNull(),
+  isRoommate: d.text("is_roommate").notNull(),
+}));
