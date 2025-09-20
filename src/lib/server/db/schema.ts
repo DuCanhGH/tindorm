@@ -1,19 +1,22 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgSchema } from "drizzle-orm/pg-core";
 
-export const user = pgTable("user", {
-  id: text("id").primaryKey(),
-  age: integer("age"),
-  username: text("username").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
-});
+export const boilermate = pgSchema("bm");
 
-export const session = pgTable("session", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+export const user = boilermate.table("user", (d) => ({
+  id: d.text("id").primaryKey(),
+  age: d.integer("age"),
+  username: d.text("username").notNull().unique(),
+  passwordHash: d.text("password_hash").notNull(),
+}));
+
+export const session = boilermate.table("session", (d) => ({
+  id: d.text("id").primaryKey(),
+  userId: d
+    .text("user_id")
     .notNull()
     .references(() => user.id),
-  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
-});
+  expiresAt: d.timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+}));
 
 export type Session = typeof session.$inferSelect;
 
