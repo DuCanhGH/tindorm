@@ -1,8 +1,8 @@
-import type { RequestEvent } from "@sveltejs/kit";
+// import type { RequestEvent } from "@sveltejs/kit";
 import { form, getRequestEvent } from "$app/server";
 import z from "zod";
 import { db } from "$lib/server/db";
-import { user, userRating } from "$lib/server/db/schema";
+// import { user, userRating } from "$lib/server/db/schema";
 
 // export const review = form(z.object({ }), () => {
 //   const { params } = getRequestEvent();
@@ -60,13 +60,13 @@ export const review = form(ratingSchema, async () => {
   const isRoomMate = formData.get("isRoomMate") === "on";
 
   try {
-    await db.insert(userRating).values({
-      userId: "", // Who is being rated
-      reviewerId: locals.user?.id, // Who is rating
-      star: Number(star), // make sure to coerce to number
-      review: review!.toString(),
-      isRoommate: isRoomMate,
-    });
+    // await db.insert(userRating).values({
+    //   userId: "", // Who is being rated
+    //   reviewerId: locals.user?.id, // Who is rating
+    //   star: Number(star), // make sure to coerce to number
+    //   review: review!.toString(),
+    //   isRoommate: isRoomMate,
+    // });
 
     return {
       ok: true,
