@@ -9,8 +9,8 @@
   import FrontBalls from "../components/FrontBalls.svelte";
   import Preference from "../components/Preference.svelte";
   import brand from "$lib/assets/favicon.svg";
-
-  let { data }: { data: import("./$types").PageData } = $props();
+  import { getSwipeList, swipe } from "./$fn.remote";
+  import { SvelteSet } from "svelte/reactivity";
 
   const imgs = [
     "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=1470&auto=format&fit=crop",
@@ -40,10 +40,9 @@
     image: string;
   };
 
-  const profiles = $state<Profile[]>(data.profiles as Profile[]);
-
   let dragging = $state(false);
-  let activeId = $derived(profiles.at(-1)?.id);
+
+  const swiped = new SvelteSet<string>([]);
 
   const x = new Spring(0, { stiffness: 0.15, damping: 0.4 });
   const y = new Spring(0, { stiffness: 0.15, damping: 0.4 });
@@ -70,7 +69,7 @@
     rot.set(dx / 20);
   }
 
-  function onPointerUp() {
+  function onPointerUp(_: PointerEvent, id: string) {
     if (!dragging || cardEl.length === 0) return;
     dragging = false;
 
@@ -86,7 +85,7 @@
       y.set(y.current);
       rot.set(direction * 25);
       dismissed = true;
-      setTimeout(() => nextCard(direction > 0 ? "like" : "nope"), 200);
+      setTimeout(() => nextCard(id, direction > 0 ? "like" : "nope"), 200);
     }
 
     if (!dismissed) {
@@ -96,10 +95,9 @@
     }
   }
 
-  function nextCard(action: "like" | "nope") {
-    const removed = profiles.pop();
-    if (!removed) return;
-    // Optionally send action somewhere
+  async function nextCard(id: string, action: "like" | "nope") {
+    swiped.add(id);
+    await swipe({ userId: id, type: action === "like" ? "right" : "left" });
     x.set(0);
     y.set(0);
     rot.set(0);
@@ -183,40 +181,50 @@
           </div>
         </div>
       {/if}
-      {#if profiles.length === 0}
-        <div class="flex h-full w-full items-center justify-center rounded-2xl bg-white shadow">
-          <p class="text-gray-500">No more profiles</p>
-        </div>
-      {:else}
-        {#each profiles as profile, i (profile.id)}
-          <div
-            bind:this={cardEl[i]}
-            class="absolute inset-0 origin-bottom rounded-2xl bg-gray-200 shadow-lg"
-            style="
-                    background-image: url('{profile.image}');
+
+      <svelte:boundary>
+        {@const res = await getSwipeList({ countries: ["US"], classYears: [2029], preferences: {} })}
+        {#if res.ok}
+          {@const profiles = res.data.filter((profile) => !swiped.has(profile.id))}
+          {#if profiles.length === 0}
+            <div class="flex h-full w-full items-center justify-center rounded-2xl bg-white shadow">
+              <p class="text-gray-500">No more profiles</p>
+            </div>
+          {:else}
+            {#each profiles as user, i (user.id)}
+              <div
+                bind:this={cardEl[i]}
+                class="absolute inset-0 origin-bottom rounded-2xl bg-gray-200 shadow-lg"
+                style="
+                    background-image: url('https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=1470&auto=format&fit=crop');
                     background-size: cover;
                     background-position: center;
                     transform: translate3d({i === profiles.length - 1 ? x.current : 0}px, {i === profiles.length - 1
-              ? y.current
-              : 0}px, 0) rotate({i === profiles.length - 1 ? rot.current : 0}deg);
+                  ? y.current
+                  : 0}px, 0) rotate({i === profiles.length - 1 ? rot.current : 0}deg);
                     transition: {dragging && i === profiles.length - 1 ? 'none' : 'transform 220ms cubic-bezier(.2,.7,.2,1)'};
                 "
-            onpointerdown={i === profiles.length - 1 ? onPointerDown : undefined}
-            onpointermove={i === profiles.length - 1 ? onPointerMove : undefined}
-            onpointerup={i === profiles.length - 1 ? onPointerUp : undefined}
-          >
-            <div class="absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-              <div class="flex items-end justify-between">
-                <div>
-                  <h2 class="text-2xl font-semibold">{profile.name}, {profile.age}</h2>
-                  <p class="mt-1 text-sm text-white/80">{profile.bio}</p>
+                onpointerdown={i === profiles.length - 1 ? onPointerDown : undefined}
+                onpointermove={i === profiles.length - 1 ? onPointerMove : undefined}
+                onpointerup={i === profiles.length - 1 ? (e) => onPointerUp(e, user.id) : undefined}
+              >
+                <div class="absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+                  <div class="flex items-end justify-between">
+                    <div>
+                      <h2 class="text-2xl font-semibold">{user.name}, Class of {user.profile.classYear}</h2>
+                      <p class="mt-1 text-sm text-white/80">{user.profile.bio || "No bio"}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        {/each}
-        <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[14vh] rounded-b-2xl bg-gradient-to-t from-black/30 to-transparent"></div>
-      {/if}
+            {/each}
+          {/if}
+        {/if}
+        {#snippet pending()}
+          Loading...
+        {/snippet}
+      </svelte:boundary>
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[14vh] rounded-b-2xl bg-gradient-to-t from-black/30 to-transparent"></div>
     </div>
   </main>
 

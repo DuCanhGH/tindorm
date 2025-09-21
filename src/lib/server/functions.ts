@@ -1,16 +1,16 @@
-// To use these functions, create a file called `fn.remote.ts` next to the call site
+// To use these functions, create a file called `$fn.remote.ts` next to the call site
 // and add the following:
 // ```ts
 // export { rateUser } from "$lib/server/functions";
 // ```
-// then import the function from `fn.remote.ts`:
+// then import the function from `$fn.remote.ts`:
 // ```svelte
-// import { rateUser } from "./fn.remote";
+// import { rateUser } from "./$fn.remote";
 // ```
 // This is a workaround
 import { command, form, getRequestEvent, query } from "$app/server";
 import z from "zod";
-import { and, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
+import { and, count, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "$lib/server/db";
 import {
   country,
@@ -28,6 +28,7 @@ import {
 import { jsonBuildObject } from "$lib/server/db/utils";
 import { SWIPE_TYPE } from "$lib/constants";
 import { currentAcademicYear } from "$lib/utils";
+import type { FunctionResult, UserProfile } from "$lib/types";
 
 const zSwipeType = z.enum(SWIPE_TYPE);
 
@@ -66,6 +67,7 @@ export const createUserProfile = form(
             option: pref[1],
           }))
         );
+        await tx.insert(group).values({ name: "New group" });
       });
     } catch (err) {
       console.error("[createUserProfile] Internal Server Error:", err);
@@ -194,7 +196,17 @@ export const swipe = command(z.object({ userId: z.string(), type: zSwipeType }),
 /**
  * Get a list of swipes.
  */
-export const getSwipes = query(zSwipeType, async (input) => {
+export const getSwipes = async (
+  input: "left" | "right"
+): Promise<
+  FunctionResult<{
+    data: {
+      id: string;
+      name: string;
+      profile: UserProfile | null;
+    }[];
+  }>
+> => {
   const { locals } = getRequestEvent();
   if (!locals.user) {
     return { ok: false, code: 401, message: "You must be signed in to see your swipes!" };
@@ -206,17 +218,11 @@ export const getSwipes = query(zSwipeType, async (input) => {
         .select({
           id: user.id,
           name: user.name,
-          info: jsonBuildObject({
-            dob: userProfile.dob,
-            country: jsonBuildObject({
-              code: country.code,
-              name: country.name,
-            }),
-            school: jsonBuildObject({
-              code: school.code,
-              name: school.name,
-            }),
-            classNo: userProfile.classNo,
+          profile: jsonBuildObject({
+            country: jsonBuildObject({ code: country.code, name: country.name }),
+            school: jsonBuildObject({ code: school.code, name: school.name }),
+            classYear: userProfile.classNo,
+            bio: userProfile.bio,
           }),
         })
         .from(userSwipe)
@@ -225,13 +231,13 @@ export const getSwipes = query(zSwipeType, async (input) => {
         .innerJoin(country, eq(country.code, userProfile.countryCode))
         .innerJoin(school, eq(school.code, userProfile.schoolCode))
         .where(and(eq(userSwipe.userId, locals.user.id), eq(userSwipe.type, input)))
-        .groupBy(user.id, user.name, userProfile.dob, country.code, country.name, school.code, school.name, userProfile.classNo),
+        .groupBy(user.id, user.name, country.code, country.name, school.code, school.name, userProfile.classNo, userProfile.bio),
     };
   } catch (err) {
     console.error("[getSwipes] Internal Server Error:", err);
     return { ok: false, code: 500, message: "Internal Server Error" };
   }
-});
+};
 
 /**
  * Get a swipe list.
@@ -244,7 +250,18 @@ export const getSwipeList = query(
     ratingType: z.enum(["over", "under"]).optional(),
     preferences: z.record(z.string(), z.array(z.string())),
   }),
-  async (input) => {
+  async (
+    input
+  ): Promise<
+    FunctionResult<{
+      data: {
+        id: string;
+        name: string;
+        profile: UserProfile;
+        rating: string;
+      }[];
+    }>
+  > => {
     const { locals } = getRequestEvent();
     if (!locals.user) {
       return { ok: false, code: 401, message: "Unauthenticated" };
@@ -255,22 +272,31 @@ export const getSwipeList = query(
         const [currentUserProfile] = await tx.select({ schoolCode: userProfile.schoolCode }).from(userProfile).where(eq(userProfile.userId, uid));
         const currentUserSchool = currentUserProfile?.schoolCode;
         const currentYear = currentAcademicYear();
-        return await db
+        const data = await tx
           .select({
             id: user.id,
             name: user.name,
             profile: {
-              country: userProfile.countryCode,
+              country: jsonBuildObject({ code: country.code, name: country.name }),
+              school: jsonBuildObject({ code: school.code, name: school.name }),
               classYear: userProfile.classNo,
+              bio: userProfile.bio,
             },
-            rating: sql`COALESCE(AVG(${userRating.star}), 0)`,
+            rating: sql<string>`COALESCE(AVG(${userRating.star}), 0)`,
           })
           .from(user)
           .innerJoin(userProfile, eq(userProfile.userId, user.id))
+          .innerJoin(country, eq(country.code, userProfile.countryCode))
+          .innerJoin(school, eq(school.code, userProfile.schoolCode))
           .leftJoin(userRating, eq(userRating.userId, user.id))
           .leftJoin(userPreferences, eq(userPreferences.userId, user.id))
           .where(
             and(
+              sql`NOT EXISTS (
+                SELECT 1
+                FROM ${userSwipe}
+                WHERE ${and(eq(userSwipe.userId, uid), eq(userSwipe.targetId, user.id))}
+              )`,
               ...(currentUserSchool ? [eq(userProfile.schoolCode, currentUserSchool)] : []),
               inArray(userProfile.countryCode, input.countries),
               inArray(userProfile.classNo, input.classYears),
@@ -288,10 +314,11 @@ export const getSwipeList = query(
               })
             )
           )
-          .groupBy(user.id, userProfile.countryCode, userProfile.classNo)
+          .groupBy(user.id, country.code, country.name, school.code, school.name, userProfile.classNo, userProfile.bio)
           .having(({ profile, rating }) =>
             or(eq(profile.classYear, currentYear + 4), input.ratingType === "over" ? gte(rating, input.rating ?? 0) : lte(rating, input.rating ?? 5))
           );
+        return { ok: true, data };
       });
     } catch (err) {
       console.error("[getSwipeList] Internal Server Error:", err);
@@ -305,14 +332,7 @@ export const getSwipeList = query(
  */
 export const sendMergeRequest = form(
   z.object({
-    from: z
-      .string()
-      .transform((s) => Number(s))
-      .pipe(z.int()),
-    to: z
-      .string()
-      .transform((s) => Number(s))
-      .pipe(z.int()),
+    toUser: z.string(),
   }),
   async (input) => {
     const { locals } = getRequestEvent();
@@ -321,10 +341,29 @@ export const sendMergeRequest = form(
         if (!locals.user) {
           return { ok: false, code: 401, message: "You must be signed in to send a match request!" };
         }
+        const [fromGroup] = await tx
+          .select({ id: group.id })
+          .from(group)
+          .innerJoin(groupMember, eq(groupMember.groupId, group.id))
+          .where(and(eq(groupMember.userId, locals.user.id), isNull(group.dissolvedAt)))
+          .orderBy(group.createdAt)
+          .limit(1);
+        const [toGroup] = await tx
+          .select({ id: group.id })
+          .from(group)
+          .innerJoin(groupMember, eq(groupMember.groupId, group.id))
+          .where(and(eq(groupMember.userId, input.toUser), isNull(group.dissolvedAt)))
+          .orderBy(group.createdAt)
+          .limit(1);
+        if (!fromGroup || !toGroup) {
+          return { ok: false, code: 409, message: "One of you two are not in a group yet!" };
+        }
+        const fromId = fromGroup.id;
+        const toId = toGroup.id;
         const [{ existingRequest }] = await tx.execute<{ existingRequest: boolean }>(
           sql`SELECT EXISTS (SELECT 1 FROM ${mergeRequest} WHERE ${or(
-            and(eq(mergeRequest.sourceGroupId, input.from), eq(mergeRequest.targetGroupId, input.to)),
-            and(eq(mergeRequest.sourceGroupId, input.to), eq(mergeRequest.targetGroupId, input.from))
+            and(eq(mergeRequest.sourceGroupId, fromId), eq(mergeRequest.targetGroupId, toId)),
+            and(eq(mergeRequest.sourceGroupId, toId), eq(mergeRequest.targetGroupId, fromId))
           )}) AS "existingRequest"`
         );
         if (existingRequest) {
@@ -333,14 +372,14 @@ export const sendMergeRequest = form(
         const initiatorUid = locals.user.id;
         const [{ isMember }] = await tx.execute<{ isMember: boolean }>(sql`
           SELECT EXISTS (
-            SELECT 1 FROM {groupMember} WHERE ${and(eq(groupMember.groupId, input.from), eq(groupMember.userId, initiatorUid))}
+            SELECT 1 FROM ${groupMember} WHERE ${and(eq(groupMember.groupId, fromId), eq(groupMember.userId, initiatorUid))}
           ) AS "isMember"
         `);
         if (!isMember) {
           return { ok: false, code: 403, message: "Unauthorized" };
         }
-        const srcMembers = await tx.select({ userId: groupMember.userId }).from(groupMember).where(eq(groupMember.groupId, input.from));
-        const tgtMembers = await tx.select({ userId: groupMember.userId }).from(groupMember).where(eq(groupMember.groupId, input.to));
+        const srcMembers = await tx.select({ userId: groupMember.userId }).from(groupMember).where(eq(groupMember.groupId, fromId));
+        const tgtMembers = await tx.select({ userId: groupMember.userId }).from(groupMember).where(eq(groupMember.groupId, toId));
         if (srcMembers.length === 0 || tgtMembers.length === 0) {
           return { ok: false, code: 409, message: "Both groups must have at least 1 member to merge" };
         }
@@ -350,9 +389,10 @@ export const sendMergeRequest = form(
           .insert(mergeRequest)
           .values({
             initiatorUserId: initiatorUid,
-            sourceGroupId: input.from,
-            targetGroupId: input.to,
-            status: "await_src",
+            receiverUserId: input.toUser,
+            sourceGroupId: fromId,
+            targetGroupId: toId,
+            status: srcMembers.length === 1 ? "await_tgt" : "await_src",
             sourceSnapshot,
             targetSnapshot,
           })
@@ -365,6 +405,124 @@ export const sendMergeRequest = form(
     }
   }
 );
+
+export const getSentMergeRequests = async (): Promise<
+  FunctionResult<{
+    data: {
+      id: string;
+      name: string;
+      profile: UserProfile;
+      rating: string;
+      group: {
+        name: string;
+      };
+    }[];
+  }>
+> => {
+  const { locals } = getRequestEvent();
+  if (!locals.user) {
+    return { ok: false, code: 401, message: "You must be signed in to see your merge requests!" };
+  }
+  const uid = locals.user.id;
+  try {
+    return {
+      ok: true,
+      data: await db.transaction(async (tx) => {
+        return await tx
+          .select({
+            id: user.id,
+            name: user.name,
+            profile: {
+              country: jsonBuildObject({ code: country.code, name: country.name }),
+              school: jsonBuildObject({ code: school.code, name: school.name }),
+              classYear: userProfile.classNo,
+              bio: userProfile.bio,
+            },
+            rating: sql<string>`COALESCE(AVG(${userRating.star}), 0)`,
+            group: {
+              name: group.name,
+            },
+          })
+          .from(mergeRequest)
+          .innerJoin(user, eq(user.id, mergeRequest.receiverUserId))
+          .innerJoin(userProfile, eq(userProfile.userId, user.id))
+          .innerJoin(country, eq(country.code, userProfile.countryCode))
+          .innerJoin(school, eq(school.code, userProfile.schoolCode))
+          .leftJoin(userRating, eq(userRating.userId, user.id))
+          .innerJoin(group, eq(group.id, mergeRequest.targetGroupId))
+          .where(eq(mergeRequest.initiatorUserId, uid))
+          .groupBy(user.id, country.code, school.code, userProfile.classNo, userProfile.bio, group.name);
+      }),
+    };
+  } catch (err) {
+    console.error("[getSentMergeRequests] Internal Server Error:", err);
+    return { ok: false, code: 500, message: "Internal Server Error" };
+  }
+};
+
+export const getReceivedMergeRequests = async (): Promise<
+  FunctionResult<{
+    data: {
+      id: string;
+      name: string;
+      profile: UserProfile;
+      rating: string;
+      group: {
+        name: string;
+      };
+    }[];
+  }>
+> => {
+  const { locals } = getRequestEvent();
+  if (!locals.user) {
+    return { ok: false, code: 401, message: "You must be signed in to see your merge requests!" };
+  }
+  const uid = locals.user.id;
+  try {
+    return {
+      ok: true,
+      data: await db.transaction(async (tx) => {
+        const userGroups = await tx
+          .select({ id: group.id })
+          .from(groupMember)
+          .innerJoin(group, eq(group.id, groupMember.groupId))
+          .where(eq(groupMember.userId, uid));
+        return await tx
+          .select({
+            id: user.id,
+            name: user.name,
+            profile: {
+              country: jsonBuildObject({ code: country.code, name: country.name }),
+              school: jsonBuildObject({ code: school.code, name: school.name }),
+              classYear: userProfile.classNo,
+              bio: userProfile.bio,
+            },
+            rating: sql<string>`COALESCE(AVG(${userRating.star}), 0)::NUMERIC`,
+            group: {
+              name: group.name,
+            },
+          })
+          .from(mergeRequest)
+          .innerJoin(user, eq(user.id, mergeRequest.receiverUserId))
+          .innerJoin(userProfile, eq(userProfile.userId, user.id))
+          .innerJoin(country, eq(country.code, userProfile.countryCode))
+          .innerJoin(school, eq(school.code, userProfile.schoolCode))
+          .leftJoin(userRating, eq(userRating.userId, user.id))
+          .innerJoin(group, eq(group.id, mergeRequest.sourceGroupId))
+          .where(
+            inArray(
+              mergeRequest.targetGroupId,
+              userGroups.map(({ id }) => id)
+            )
+          )
+          .groupBy(user.id, country.code, school.code, userProfile.classNo, userProfile.bio, group.name);
+      }),
+    };
+  } catch (err) {
+    console.error("[getReceivedMergeRequests] Internal Server Error:", err);
+    return { ok: false, code: 500, message: "Internal Server Error" };
+  }
+};
 
 /**
  * Accept a merge request.
@@ -459,12 +617,24 @@ export const acceptMergeRequest = form(
 
         // target side done -> finalize merge
         if (side === "tgt") {
-          // move members
-          await tx.update(groupMember).set({ groupId: mr.targetGroupId }).where(eq(groupMember.groupId, mr.sourceGroupId));
-          // dissolve
-          await tx.update(group).set({ dissolvedAt: new Date() }).where(eq(group.id, mr.sourceGroupId));
-          // merged
-          await tx.update(mergeRequest).set({ status: "merged", updatedAt: new Date() }).where(eq(mergeRequest, input.id));
+          // quick & dirty
+          const [{ count: srcCount }] = await tx.select({ count: count() }).from(group).where(eq(groupMember.groupId, mr.targetGroupId));
+          const [{ count: tgtCount }] = await tx.select({ count: count() }).from(group).where(eq(groupMember.groupId, mr.targetGroupId));
+          if (srcCount < tgtCount) {
+            // move members
+            await tx.update(groupMember).set({ groupId: mr.targetGroupId }).where(eq(groupMember.groupId, mr.sourceGroupId));
+            // dissolve
+            await tx.update(group).set({ dissolvedAt: new Date() }).where(eq(group.id, mr.sourceGroupId));
+            // merged
+            await tx.update(mergeRequest).set({ status: "merged", updatedAt: new Date() }).where(eq(mergeRequest, input.id));
+          } else {
+            // move members
+            await tx.update(groupMember).set({ groupId: mr.sourceGroupId }).where(eq(groupMember.groupId, mr.targetGroupId));
+            // dissolve
+            await tx.update(group).set({ dissolvedAt: new Date() }).where(eq(group.id, mr.targetGroupId));
+            // merged
+            await tx.update(mergeRequest).set({ status: "merged", updatedAt: new Date() }).where(eq(mergeRequest, input.id));
+          }
           return { ok: true, mergeStatus: "merged" };
         }
       });

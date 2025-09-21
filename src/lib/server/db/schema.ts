@@ -81,6 +81,10 @@ export const mergeRequest = boilermate.table("merge_request", (d) => ({
     .text("initiator_user_id")
     .references(() => user.id)
     .notNull(),
+  receiverUserId: d
+    .text("receiver_user_id")
+    .references(() => user.id)
+    .notNull(),
   sourceGroupId: d
     .bigint("source_group_id", { mode: "number" })
     .references(() => group.id)
@@ -147,6 +151,7 @@ export const userProfile = boilermate.table(
     // For simplicity purposes, we'll only allow a main major
     majorCode: d.text("major_code").references(() => major.code, { onDelete: "set null" }),
     classNo: d.smallint("class_no").notNull(), // Class of 2029
+    bio: d.text("bio"),
   }),
   (t) => [index("user_profile_user_id_idx").on(t.userId)]
 );
@@ -227,7 +232,7 @@ export const userSwipe = boilermate.table(
 
 export const user = boilermate.table("user", (d) => ({
   id: d.text("id").primaryKey(),
-  name: d.text("name").notNull().unique(),
+  name: d.text("name").notNull(),
   email: d.text("email").notNull().unique(),
   emailVerified: d.boolean("email_verified").default(false).notNull(),
   image: d.text("image"),
@@ -290,4 +295,3 @@ export const verification = boilermate.table("verification", (d) => ({
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 }));
-
