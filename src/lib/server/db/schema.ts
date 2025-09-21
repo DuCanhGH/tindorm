@@ -46,10 +46,11 @@ export const boilermate = pgSchema("bm");
 export const group = boilermate.table("group", (d) => ({
   id: d.bigserial("id", { mode: "number" }).primaryKey(),
   name: d.text().notNull(),
-  dissolved: d.boolean().notNull().default(false),
+  dissolvedAt: d.timestamp("dissolved_at"),
+  createdAt: d.timestamp("created_at").defaultNow().notNull(),
 }));
 
-export const groupToUser = boilermate.table(
+export const groupMember = boilermate.table(
   "group_to_user",
   (d) => ({
     userId: d
@@ -60,19 +61,62 @@ export const groupToUser = boilermate.table(
       .bigint("group_id", { mode: "number" })
       .references(() => group.id, { onDelete: "cascade" })
       .notNull(),
+    createdAt: d.timestamp("created_at").defaultNow().notNull(),
   }),
   (t) => [primaryKey({ columns: [t.userId, t.groupId] })]
 );
 
-export const matchRequest = boilermate.table(
-  "match_request",
+export const mergeRequestStatus = boilermate.enum("merge_request_status", [
+  "await_src",
+  "await_tgt",
+  "merge_pending",
+  "merged",
+  "rejected",
+  "cancelled",
+]);
+
+export const mergeRequest = boilermate.table("merge_request", (d) => ({
+  id: d.bigserial("id", { mode: "number" }).primaryKey(),
+  initiatorUserId: d
+    .text("initiator_user_id")
+    .references(() => user.id)
+    .notNull(),
+  sourceGroupId: d
+    .bigint("source_group_id", { mode: "number" })
+    .references(() => group.id)
+    .notNull(),
+  targetGroupId: d
+    .bigint("target_group_id", { mode: "number" })
+    .references(() => group.id)
+    .notNull(),
+  status: mergeRequestStatus("status").notNull(),
+  // snapshot arrays to freeze who must approve
+  sourceSnapshot: d.jsonb("source_snapshot").notNull(), // e.g. [{ userId, name, etc }]
+  targetSnapshot: d.jsonb("target_snapshot").notNull(),
+  createdAt: d.timestamp("created_at").defaultNow().notNull(),
+  updatedAt: d.timestamp("updated_at").defaultNow().notNull(),
+}));
+
+export const mergeApprovalSide = boilermate.enum("merge_approval_side", ["src", "tgt"]);
+
+export const mergeApproval = boilermate.table(
+  "merge_approval",
   (d) => ({
-    fromId: d.text("from_id").references(() => user.id, { onDelete: "cascade" }),
-    toId: d.text("to_id").references(() => user.id, { onDelete: "cascade" }),
-    groupId: d.bigint("group_id", { mode: "number" }).references(() => group.id, { onDelete: "cascade" }),
-    pendingApproval: d.boolean("pending_approval").notNull().default(true),
+    id: d.bigserial("id", { mode: "number" }).primaryKey(),
+    mergeRequestId: d
+      .bigint("merge_request_id", { mode: "number" })
+      .references(() => mergeRequest.id)
+      .notNull(),
+    approverUserId: d
+      .text("approver_user_id")
+      .references(() => user.id)
+      .notNull(),
+    side: mergeApprovalSide("side").notNull(),
+    approved: d.boolean("approved").notNull(),
+    comment: d.text("comment"),
+    createdAt: d.timestamp("created_at").defaultNow().notNull(),
   }),
-  (t) => [primaryKey({ columns: [t.fromId, t.toId] })]
+  (t) => [primaryKey({ columns: [t.mergeRequestId, t.approverUserId] })]
 );
 
 export const country = boilermate.table("country", (d) => ({
@@ -81,6 +125,11 @@ export const country = boilermate.table("country", (d) => ({
 }));
 
 export const school = boilermate.table("school", (d) => ({
+  code: d.text("code").primaryKey(),
+  name: d.text("name").notNull(),
+}));
+
+export const major = boilermate.table("major", (d) => ({
   code: d.text("code").primaryKey(),
   name: d.text("name").notNull(),
 }));
@@ -96,6 +145,8 @@ export const userProfile = boilermate.table(
     dob: d.date().notNull(),
     countryCode: d.text("country_code").references(() => country.code, { onDelete: "set null" }),
     schoolCode: d.text("school_code").references(() => school.code, { onDelete: "set null" }),
+    // For simplicity purposes, we'll only allow a main major
+    majorCode: d.text("major_code").references(() => major.code, { onDelete: "set null" }),
     classNo: d.smallint("class_no").notNull(), // Class of 2029
   }),
   (t) => [index("user_profile_user_id_idx").on(t.userId)]
