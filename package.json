@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "lint": "prettier --check . && eslint .",
     "db:start": "docker compose up",
+    "db:empty": "drizzle-kit generate --custom",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
