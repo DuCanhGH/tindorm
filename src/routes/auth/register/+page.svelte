@@ -4,13 +4,13 @@
   import { register } from "$lib/auth.remote";
 
   // OAuth handlers
-  const handleGitHubLogin = () => {
+  const handleGitHubRegister = () => {
     authClient.signIn.social({
       provider: "github",
     });
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleRegister = () => {
     authClient.signIn.social({
       provider: "google",
     });
@@ -23,7 +23,7 @@
   <title>Register | Tindorm</title>
 </svelte:head>
 
-<div class="purdue-gradient relative min-h-screen overflow-hidden">
+<div class="relative min-h-screen overflow-hidden purdue-gradient">
   <!-- Floating Orbs -->
   <div class="floating-orb orb-1"></div>
   <div class="floating-orb orb-2"></div>
@@ -31,7 +31,7 @@
 
   <!-- Main Container -->
   <div class="relative z-10 flex min-h-screen items-center justify-center p-4">
-    <div class="glass-effect w-full max-w-xl rounded-3xl p-8">
+    <div class="w-full max-w-xl rounded-3xl glass-effect p-8">
       <!-- Logo Section -->
       <div class="mb-8">
         <div class="flex gap-4">
@@ -40,7 +40,7 @@
           </div>
           <h1 class="mb-2 text-4xl font-bold text-white">Tindorm</h1>
         </div>
-        <div class="purdue-gold mt-4 h-1 w-full rounded-full"></div>
+        <div class="mt-4 h-1 w-full rounded-full purdue-gold"></div>
       </div>
 
       <!-- Welcome Message -->
@@ -125,7 +125,7 @@
         <button
           type="submit"
           disabled={!!register.pending}
-          class="btn-hover purdue-gold relative w-full overflow-hidden rounded-xl px-6 py-4 font-semibold text-black transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+          class="btn-hover relative w-full overflow-hidden rounded-xl px-6 py-4 font-semibold text-black transition-all duration-300 purdue-gold disabled:cursor-not-allowed disabled:opacity-50"
         >
           {#if register.pending}
             <i class="fas fa-spinner fa-spin mr-2"></i>
@@ -142,9 +142,9 @@
       </form>
 
       <div class="my-4 flex items-center">
-        <div class="purdue-gold:reverse h-1 flex-1"></div>
+        <div class="h-1 flex-1 purdue-gold-reverse"></div>
         <span class="px-4 text-sm font-medium text-gray-400">OR</span>
-        <div class="purdue-gold h-1 flex-1"></div>
+        <div class="h-1 flex-1 purdue-gold"></div>
       </div>
 
       <!-- OAuth Buttons -->
@@ -152,7 +152,7 @@
         <!-- GitHub OAuth Button -->
         <button
           class="btn-hover aspect-square items-center justify-center overflow-hidden rounded-full border border-gray-600 bg-gray-800 p-4 text-white transition-all duration-300 hover:bg-gray-700"
-          onclick={handleGitHubLogin}
+          onclick={handleGitHubRegister}
         >
           <i class="fab fa-github text-xl"></i>
           <span class="sr-only">Continue with GitHub</span>
@@ -161,7 +161,7 @@
         <!-- Google OAuth Button -->
         <button
           class="btn-hover aspect-square items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white p-4 text-gray-800 transition-all duration-300 hover:bg-gray-50"
-          onclick={handleGoogleLogin}
+          onclick={handleGoogleRegister}
         >
           <i class="fab fa-google text-xl"></i>
           <span class="sr-only">Continue with Google</span>
@@ -175,24 +175,6 @@
 </div>
 
 <style>
-  .purdue-gradient {
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 15%, #2d2419 35%, #3d3123 50%, #4a3c2a 65%, #cfb991 85%, #e6d7b3 100%);
-  }
-
-  .purdue-gold {
-    background: linear-gradient(135deg, #cfb991 0%, #b1a172 50%, #8b7b47 100%);
-  }
-
-  .purdue-gold\:reverse {
-    background: linear-gradient(135deg, #8b7b47 0%, #b1a172 50%, #cfb991 100%);
-  }
-
-  .glass-effect {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
   .floating-orb {
     position: absolute;
     border-radius: 50%;
@@ -271,9 +253,5 @@
     & > * {
       opacity: 0.7;
     }
-  }
-
-  .logo-glow {
-    filter: drop-shadow(0 0 20px rgba(207, 185, 145, 0.5));
   }
 </style>
