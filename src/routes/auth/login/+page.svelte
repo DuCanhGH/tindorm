@@ -126,7 +126,7 @@
       </form>
 
       <div class="my-4 flex items-center">
-        <div class="purdue-gold:reverse h-1 flex-1"></div>
+        <div class="purdue-gold-reverse h-1 flex-1"></div>
         <span class="px-4 text-sm font-medium text-gray-400">OR</span>
         <div class="purdue-gold h-1 flex-1"></div>
       </div>
@@ -159,24 +159,6 @@
 </div>
 
 <style>
-  .purdue-gradient {
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 15%, #2d2419 35%, #3d3123 50%, #4a3c2a 65%, #cfb991 85%, #e6d7b3 100%);
-  }
-
-  .purdue-gold {
-    background: linear-gradient(135deg, #cfb991 0%, #b1a172 50%, #8b7b47 100%);
-  }
-
-  .purdue-gold\:reverse {
-    background: linear-gradient(135deg, #8b7b47 0%, #b1a172 50%, #cfb991 100%);
-  }
-
-  .glass-effect {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
   .floating-orb {
     position: absolute;
     border-radius: 50%;
@@ -255,9 +237,5 @@
     & > * {
       opacity: 0.7;
     }
-  }
-
-  .logo-glow {
-    filter: drop-shadow(0 0 20px rgba(207, 185, 145, 0.5));
   }
 </style>
