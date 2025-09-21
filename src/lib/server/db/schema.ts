@@ -1,3 +1,4 @@
+import { SWIPE_TYPE } from "$lib/constants";
 import { ForeignKeyBuilder, type PgColumn, pgSchema, primaryKey, type AnyPgColumn, type UpdateDeleteAction, index } from "drizzle-orm/pg-core";
 
 export type ColumnsWithTable<TTableName extends string, TColumns extends PgColumn[]> = {
@@ -80,10 +81,10 @@ export const userProfile = boilermate.table(
       .text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    age: d.smallint().notNull().default(0),
+    dob: d.date().notNull(),
     countryCode: d.text("country_code").references(() => country.code, { onDelete: "set null" }),
     schoolCode: d.text("school_code").references(() => school.code, { onDelete: "set null" }),
-    classNo: d.smallint().notNull(), // Class of 2029
+    classNo: d.smallint("class_no").notNull(), // Class of 2029
   }),
   (t) => [index("user_profile_user_id_idx").on(t.userId)]
 );
@@ -113,7 +114,7 @@ export const userPreferences = boilermate.table(
       .references(() => user.id, { onDelete: "cascade" }),
     categoryName: d
       .text("category_name")
-      .references(() => prefCategory.name)
+      .references(() => prefCategory.name, { onDelete: "cascade" })
       .notNull(),
     option: d.text("option").notNull(),
   }),
@@ -128,6 +129,38 @@ export const userPreferences = boilermate.table(
       { onDelete: "cascade" }
     ),
   ]
+);
+
+export const userRating = boilermate.table(
+  "user_rating",
+  (d) => ({
+    userId: d
+      .text("user_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    reviewerId: d.text("reviewer_id").references(() => user.id, { onDelete: "set null" }),
+    star: d.smallint().notNull(),
+    review: d.text().notNull(),
+  }),
+  (t) => [primaryKey({ columns: [t.userId, t.reviewerId] })]
+);
+
+export const swipeType = boilermate.enum("swipe_type", SWIPE_TYPE);
+
+export const userSwipe = boilermate.table(
+  "user_swipe",
+  (d) => ({
+    userId: d
+      .text("user_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    targetId: d
+      .text("target_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    type: swipeType("type").notNull(),
+  }),
+  (t) => [primaryKey({ columns: [t.userId, t.targetId] })]
 );
 
 export const user = boilermate.table("user", (d) => ({

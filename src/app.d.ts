@@ -6,8 +6,8 @@ import type { Session } from "$lib/server/auth";
 declare global {
   namespace App {
     interface Locals {
-      user: Session["user"];
-      session: Session["session"];
+      user: Session["user"] | undefined;
+      session: Session["session"] | undefined;
     }
   } // interface Error {}
   // interface Locals {}
