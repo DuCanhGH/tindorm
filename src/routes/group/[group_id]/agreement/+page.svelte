@@ -1,17 +1,40 @@
+<!-- src/routes/agreement/+page.svelte -->
 <script lang="ts">
-  // Ghost/default values (hardcoded)
-  let rules = {
-    quietHours: { start: "23:00", end: "07:00"},
+  // Keep the type, but don’t try to stuff defaults into `data` itself.
+  export let data: {
+    emptyState?: string;
+    agreement?: { rules: any; publishedAt: string | Date | null };
+    signatures?: Array<{ userId: string; name: string | null; email: string; rulesSnapshot: any; signedAt: string | Date }>;
+  } = {};
+
+  // Ghost/default rules used when no server data is provided
+  const GHOST_RULES = {
+    quietHours: { start: "23:00", end: "07:00" },
     guests: { daytime: true, overnight: false, overnightPerWeekMax: 1, advanceNoticeHours: 24 },
-    chores: { cleanCheckDay: "Sun", rotation: [{ task: "Take out trash", frequency: "weekly" }, {task: "Vacuum the room", frequency: "weekly"}] },
+    chores: {
+      cleanCheckDay: "Sun",
+      rotation: [
+        { task: "Take out trash", frequency: "weekly" },
+        { task: "Vacuum the room", frequency: "weekly" }
+      ]
+    },
     cleanliness: { level: "medium", sharedSpaces: true },
     appliances: {
       notBorrow: ["Personal meds", "Laptop"],
       withPermission: ["Headphones", "Board games"],
-      withoutPermission: ["Mugs", "Spare phone charger","fridge","microwave"]
+      withoutPermission: ["Mugs", "Spare phone charger", "fridge", "microwave"]
     },
     other: "No loud music during finals week."
   };
+  const GHOST_PUBLISHED_AT: Date = new Date();
+
+  $: rules = data.agreement?.rules ?? GHOST_RULES;
+  $: publishedAt = data.agreement?.publishedAt ?? GHOST_PUBLISHED_AT; 
+
+  const fmt = (d: string | Date | null | undefined) =>
+    d ? new Date(d).toLocaleString() : "—";
+
+  // Always have something to render: server rules OR ghosts
 
   function handleSubmit() {
     console.log("Pretend saved:\n" + JSON.stringify(rules, null, 2));
@@ -19,145 +42,85 @@
 </script>
 
 <div class="max-w-3xl mx-auto p-6 space-y-8">
-  <p> <a href="./"> Return to group</a></p>
-  <h1 class="text-3xl font-bold">Roommate Agreement (Demo)</h1>
-  <p class="text-gray-500">These are ghost values — no backend yet.</p>
+  <h1 class="text-3xl font-bold">Official Agreement</h1>
 
-  <!-- Quiet Hours -->
-  <section class="card p-4 space-y-3 border rounded-xl">
-    <h2 class="font-semibold text-lg">Quiet Hours</h2>
-    <div class="grid grid-cols-2 gap-4">
-      <label class="flex flex-col">Start
-        <input class="input" type="time" bind:value={rules.quietHours.start}/>
-      </label>
-      <label class="flex flex-col">End
-        <input class="input" type="time" bind:value={rules.quietHours.end}/>
-      </label>
-    </div>
-  </section>
+  {#if data.emptyState}
+    <p class="text-gray-600">{data.emptyState}</p>
+  {:else}
+    <section class="border rounded-xl p-4 space-y-3">
+      <p class="text-gray-500 text-sm">Published: {fmt(publishedAt)}</p>
 
-  <!-- Guests -->
-  <section class="card p-4 space-y-3 border rounded-xl">
-    <h2 class="font-semibold text-lg">Guests</h2>
-      <label class="inline-flex items-center gap-2">
-        <input type="checkbox" bind:checked={rules.guests.daytime} />
-        <span>Daytime guests allowed</span>
-      </label>
-      <label class="inline-flex items-center gap-2">
-        <input type="checkbox" bind:checked={rules.guests.overnight} />
-        <span>Overnight guests allowed</span>
-      </label>
-      <label class="flex flex-col">Overnights per week (max)
-        <input class="input" type="number" min="0" max="7" bind:value={rules.guests.overnightPerWeekMax} />
-      </label>
-      <label class="flex flex-col">Advance notice (hours)
-        <input class="input" type="number" min="0" max="168" bind:value={rules.guests.advanceNoticeHours} />
-      </label>
-  </section>
+      <div class="space-y-3">
+        <div class="border rounded-lg p-3">
+          <h3 class="font-medium">Quiet Hours</h3>
+          <p>Start: {rules.quietHours.start}</p>
+          <p>End: {rules.quietHours.end}</p>
+        </div>
 
-  <!-- Chores -->
-  <section class="card p-4 space-y-3 border rounded-xl">
-    <h2 class="font-semibold text-lg">Chores</h2>
-    <label class="flex flex-col">Clean check day
-      <select class="input" bind:value={rules.chores.cleanCheckDay}>
-        <option>Sun</option><option>Mon</option><option>Tue</option>
-        <option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option>
-      </select>
-    </label>
-    {#each rules.chores.rotation as item, i}
-      <div class="flex gap-2">
-        <input class="border rounded-lg px-2 py-1 flex-1"
-               placeholder="Item name"
-               bind:value={rules.chores.rotation[i].task} />
-        <select class="input px-3 py-1 border rounded-lg" bind:value={item.frequency}>
-              <option>daily</option><option>weekly</option><option>biweekly</option><option>monthly</option>
-        </select>
-        <button type="button" class="px-3 py-1 border rounded-lg"
-                on:click={() => rules.chores.rotation = rules.chores.rotation.filter((_, idx) => idx !== i)}>Remove</button>
+        <div class="border rounded-lg p-3">
+          <h3 class="font-medium">Guests</h3>
+          <p>Daytime: {rules.guests.daytime ? "Yes" : "No"}</p>
+          <p>Overnight: {rules.guests.overnight ? "Yes" : "No"}</p>
+        </div>
+
+        <div class="border rounded-lg p-3">
+          <h3 class="font-medium">Appliances & Borrowing</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div>
+              <p class="font-medium underline">NOT borrowed</p>
+              <ul class="list-disc ml-5">
+                {#each rules.appliances.notBorrow as item}
+                  <li>{item}</li>
+                {/each}
+              </ul>
+            </div>
+            <div>
+              <p class="font-medium underline">WITH permission</p>
+              <ul class="list-disc ml-5">
+                {#each rules.appliances.withPermission as item}
+                  <li>{item}</li>
+                {/each}
+              </ul>
+            </div>
+            <div>
+              <p class="font-medium underline">WITHOUT permission</p>
+              <ul class="list-disc ml-5">
+                {#each rules.appliances.withoutPermission as item}
+                  <li>{item}</li>
+                {/each}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="border rounded-lg p-3">
+          <h3 class="font-medium">Other Notes</h3>
+          <p class="whitespace-pre-wrap">{rules.other}</p>
+        </div>
       </div>
-    {/each}
-    <button type="button" class="px-3 py-1 border rounded-lg"
-            on:click={ () => {
-              rules.chores.rotation = [...rules.chores.rotation, {task: "", frequency: "weekly"}];
-              rules = { ...rules };
-            }}>+ Add item</button>
-  </section>
+    </section>
 
-  <!-- Cleanliness -->
-  <section class="card p-4 space-y-3 border rounded-xl">
-    <h2 class="font-semibold text-lg">Cleanliness</h2>
-    <select class="input" bind:value={rules.cleanliness.level}>
-      <option>low</option><option>medium</option><option>high</option>
-    </select>
-    <label class="inline-flex items-center gap-2">
-      <input type="checkbox" bind:checked={rules.cleanliness.sharedSpaces}/>
-      <span>Shared spaces responsibility</span>
-    </label>
-  </section>
-
-
-  <!-- Not allowed -->
-  <div class="space-y-2">
-    <h3 class="font-medium">The following items may <span class="underline">NOT</span> be borrowed:</h3>
-    {#each rules.appliances.notBorrow as item, i}
-      <div class="flex gap-2">
-        <input class="border rounded-lg px-2 py-1 flex-1"
-               placeholder="Item name"
-               bind:value={rules.appliances.notBorrow[i]} />
-        <button type="button" class="px-3 py-1 border rounded-lg"
-                on:click={() => rules.appliances.notBorrow = rules.appliances.notBorrow.filter((_, idx) => idx !== i)}>Remove</button>
-      </div>
-    {/each}
-    <button type="button" class="px-3 py-1 border rounded-lg"
-            on:click={ () => {
-              rules.appliances.notBorrow = [...rules.appliances.notBorrow, ""];
-              rules = { ...rules };
-            }}>+ Add item</button>
-  </div>
-
-  <!-- With permission -->
-  <div class="space-y-2">
-    <h3 class="font-medium">The following items may be borrowed <span class="underline">WITH permission</span>:</h3>
-    {#each rules.appliances.withPermission as item, i}
-      <div class="flex gap-2">
-        <input class="border rounded-lg px-2 py-1 flex-1"
-               placeholder="Item name"
-               bind:value={rules.appliances.withPermission[i]} />
-        <button type="button" class="px-3 py-1 border rounded-lg"
-                on:click={() => rules.appliances.withPermission = rules.appliances.withPermission.filter((_, idx) => idx !== i)}>Remove</button>
-      </div>
-    {/each}
-    <button type="button" class="px-3 py-1 border rounded-lg"
-            on:click={ () => {
-              rules.appliances.withPermission = [...rules.appliances.withPermission, ""];
-              rules = { ...rules };
-            }}>+ Add item</button>
-  </div>
-
-  <!-- Without permission -->
-  <div class="space-y-2">
-    <h3 class="font-medium">The following items may be borrowed <span class="underline">WITHOUT permission</span>:</h3>
-    {#each rules.appliances.withoutPermission as item, i}
-      <div class="flex gap-2">
-        <input class="border rounded-lg px-2 py-1 flex-1"
-               placeholder="Item name"
-               bind:value={rules.appliances.withoutPermission[i]} />
-        <button type="button" class="px-3 py-1 border rounded-lg"
-                on:click={() => rules.appliances.withoutPermission = rules.appliances.withoutPermission.filter((_, idx) => idx !== i)}>Remove</button>
-      </div>
-    {/each}
-    <button type="button" class="px-3 py-1 border rounded-lg"
-            on:click={ () => {
-              rules.appliances.withoutPermission = [...rules.appliances.withoutPermission, ""];
-              rules = { ...rules };
-            }}>+ Add item</button>
-  </div>
-
-  <!-- Other -->
-  <section class="card p-4 space-y-3 border rounded-xl">
-    <h2 class="font-semibold text-lg">Other Notes</h2>
-    <textarea class="input w-full min-h-[120px]" bind:value={rules.other}></textarea>
-  </section>
-
-  <button on:click|preventDefault={handleSubmit} class="btn">Save (fake)</button>
+    <section class="border rounded-xl p-4 space-y-3">
+      <h2 class="text-xl font-semibold">Signatures</h2>
+      {#if !data.signatures || data.signatures.length === 0}
+        <p class="text-gray-600">No signatures recorded yet.</p>
+      {:else}
+        <div class="space-y-2">
+          {#each data.signatures as s}
+            <div class="flex items-center justify-between border rounded-lg p-2">
+              <div>
+                <p class="font-medium">{s.name ?? s.email}</p>
+                <p class="text-gray-500 text-sm">Signed at {fmt(s.signedAt)}</p>
+              </div>
+              <details class="text-sm">
+                <summary class="cursor-pointer">View snapshot</summary>
+                <pre class="bg-gray-50 p-2 rounded overflow-auto text-xs">{JSON.stringify(s.rulesSnapshot, null, 2)}</pre>
+              </details>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </section>
+  {/if}
 </div>
+<button on:click|preventDefault={handleSubmit} class="btn">Save (fake)</button>
