@@ -79,7 +79,7 @@
                 })}
               >
                 <input name="toUser" type="hidden" value={c.id} />
-                <button type="button" class="rounded-full bg-red-500 px-4 py-2 text-white shadow transition hover:bg-red-600"> Request match </button>
+                <button type="submit" class="rounded-full bg-red-500 px-4 py-2 text-white shadow transition hover:bg-red-600"> Request match </button>
               </form>
               <a href={resolve(`/profile/${c.id}`)} class="rounded-full bg-pink-500 px-4 py-2 text-white shadow transition hover:bg-pink-600">
                 View profile

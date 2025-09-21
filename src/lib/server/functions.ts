@@ -341,6 +341,9 @@ export const sendMergeRequest = form(
         if (!locals.user) {
           return { ok: false, code: 401, message: "You must be signed in to send a match request!" };
         }
+        if (locals.user.id === input.toUser) {
+          return { ok: false, code: 409, message: "You cannot send a merge request to yourself!" };
+        }
         const [fromGroup] = await tx
           .select({ id: group.id })
           .from(group)
