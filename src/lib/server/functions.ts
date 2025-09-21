@@ -10,7 +10,7 @@
 // This is a workaround
 import { command, form, getRequestEvent, query } from "$app/server";
 import z from "zod";
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
 import { db } from "$lib/server/db";
 import {
   country,
@@ -27,6 +27,7 @@ import {
 } from "$lib/server/db/schema";
 import { jsonBuildObject } from "$lib/server/db/utils";
 import { SWIPE_TYPE } from "$lib/constants";
+import { currentAcademicYear } from "$lib/utils";
 
 const zSwipeType = z.enum(SWIPE_TYPE);
 
@@ -231,6 +232,73 @@ export const getSwipes = query(zSwipeType, async (input) => {
     return { ok: false, code: 500, message: "Internal Server Error" };
   }
 });
+
+/**
+ * Get a swipe list.
+ */
+export const getSwipeList = query(
+  z.object({
+    countries: z.array(z.string()),
+    classYears: z.array(z.int().min(2000).max(2100)),
+    rating: z.float32().optional(),
+    ratingType: z.enum(["over", "under"]).optional(),
+    preferences: z.record(z.string(), z.array(z.string())),
+  }),
+  async (input) => {
+    const { locals } = getRequestEvent();
+    if (!locals.user) {
+      return { ok: false, code: 401, message: "Unauthenticated" };
+    }
+    const uid = locals.user.id;
+    try {
+      return await db.transaction(async (tx) => {
+        const [currentUserProfile] = await tx.select({ schoolCode: userProfile.schoolCode }).from(userProfile).where(eq(userProfile.userId, uid));
+        const currentUserSchool = currentUserProfile?.schoolCode;
+        const currentYear = currentAcademicYear();
+        return await db
+          .select({
+            id: user.id,
+            name: user.name,
+            profile: {
+              country: userProfile.countryCode,
+              classYear: userProfile.classNo,
+            },
+            rating: sql`COALESCE(AVG(${userRating.star}), 0)`,
+          })
+          .from(user)
+          .innerJoin(userProfile, eq(userProfile.userId, user.id))
+          .leftJoin(userRating, eq(userRating.userId, user.id))
+          .leftJoin(userPreferences, eq(userPreferences.userId, user.id))
+          .where(
+            and(
+              ...(currentUserSchool ? [eq(userProfile.schoolCode, currentUserSchool)] : []),
+              inArray(userProfile.countryCode, input.countries),
+              inArray(userProfile.classNo, input.classYears),
+              ...Object.entries(input.preferences).map(([cat, val]) => {
+                return sql`EXISTS (
+                SELECT 1
+                FROM ${userPreferences} up
+                WHERE up.user_id = ${user.id}
+                  AND up.category_name = ${cat}
+                  AND up.option IN (${sql.join(
+                    val.map((v) => sql`${v}`),
+                    sql`, `
+                  )})
+              )`;
+              })
+            )
+          )
+          .groupBy(user.id, userProfile.countryCode, userProfile.classNo)
+          .having(({ profile, rating }) =>
+            or(eq(profile.classYear, currentYear + 4), input.ratingType === "over" ? gte(rating, input.rating ?? 0) : lte(rating, input.rating ?? 5))
+          );
+      });
+    } catch (err) {
+      console.error("[getSwipeList] Internal Server Error:", err);
+      return { ok: false, code: 500, message: "Internal Server Error" };
+    }
+  }
+);
 
 /**
  * Send a merge request to another user.
