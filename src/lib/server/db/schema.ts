@@ -290,3 +290,4 @@ export const verification = boilermate.table("verification", (d) => ({
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 }));
+
