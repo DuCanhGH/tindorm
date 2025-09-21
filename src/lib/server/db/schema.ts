@@ -64,6 +64,17 @@ export const groupToUser = boilermate.table(
   (t) => [primaryKey({ columns: [t.userId, t.groupId] })]
 );
 
+export const matchRequest = boilermate.table(
+  "match_request",
+  (d) => ({
+    fromId: d.text("from_id").references(() => user.id, { onDelete: "cascade" }),
+    toId: d.text("to_id").references(() => user.id, { onDelete: "cascade" }),
+    groupId: d.bigint("group_id", { mode: "number" }).references(() => group.id, { onDelete: "cascade" }),
+    pendingApproval: d.boolean("pending_approval").notNull().default(true),
+  }),
+  (t) => [primaryKey({ columns: [t.fromId, t.toId] })]
+);
+
 export const country = boilermate.table("country", (d) => ({
   code: d.text("code").primaryKey(), // ISO code
   name: d.text("name").notNull(),
@@ -80,7 +91,8 @@ export const userProfile = boilermate.table(
     userId: d
       .text("user_id")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" })
+      .unique(),
     dob: d.date().notNull(),
     countryCode: d.text("country_code").references(() => country.code, { onDelete: "set null" }),
     schoolCode: d.text("school_code").references(() => school.code, { onDelete: "set null" }),

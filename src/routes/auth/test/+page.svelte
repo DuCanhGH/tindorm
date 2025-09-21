@@ -1,6 +1,6 @@
 <script lang="ts">
   import { authClient } from "$lib/auth";
-  import { getSwipes } from "./functions.remote";
+  import { getSwipes } from "./fn.remote";
 
   const session = authClient.useSession();
 </script>
