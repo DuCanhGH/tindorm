@@ -117,37 +117,40 @@
 </script>
 
 <div class="min-h-screen">
-    <div class="pointer-events-none absolute inset-x-0 top-0 h-full rounded-t-2xl bg-gradient-to-b from-black/100 to-transparent"></div>
-    <FrontBalls />
-    <header class="relative mx-auto flex w-full z-50 max-w-5xl items-center justify-between px-4 py-4">
-        <div class="flex items-center gap-2">
-            <button onpointerdown={() => goto("/chats")} class="underline text-white font-bold underline-offset-2 rounded-full p-2 hover:bg-white hover:text-black">
-                Chats
-            </button>
-        </div>
-        <a href="/auth/login" class="rounded-full bg-white px-4 py-2 text-black shadow hover:bg-blue-700">Log in</a>
-    </header>
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-full rounded-t-2xl bg-gradient-to-b from-black/100 to-transparent"></div>
+  <FrontBalls />
+  <header class="relative z-50 mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
+    <div class="flex items-center gap-2">
+      <button
+        onpointerdown={() => goto("/chats")}
+        class="rounded-full p-2 font-bold text-white underline underline-offset-2 hover:bg-white hover:text-black"
+      >
+        Chats
+      </button>
+    </div>
+    <a href="/auth/login" class="rounded-full bg-white px-4 py-2 text-black shadow hover:bg-blue-700">Log in</a>
+  </header>
 
-    <main class="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-6 px-4 pb-16">
-        <div class="relative mt-4 h-[70vh] w-full max-w-xl select-none">
-        {#if false}
+  <main class="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-6 px-4 pb-16">
+    <div class="relative mt-4 h-[70vh] w-full max-w-xl select-none">
+      {#if false}
         <!-- lock cover -->
-            <div class="absolute inset-0 z-40 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur">
-            <div class="text-center text-white">
-                <p class="mb-3 text-lg font-semibold">Sign in to Swipe</p>
-            </div>
-            </div>
-        {/if}
-        {#if profiles.length === 0}
-            <div class="flex h-full w-full items-center justify-center rounded-2xl bg-white shadow">
-            <p class="text-gray-500">No more profiles</p>
-            </div>
-        {:else}
-            {#each profiles as profile, i (profile.id)}
-            <div
-                bind:this={cardEl[i]}
-                class="absolute inset-0 origin-bottom rounded-2xl bg-gray-200 shadow-lg"
-                style="
+        <div class="absolute inset-0 z-40 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur">
+          <div class="text-center text-white">
+            <p class="mb-3 text-lg font-semibold">Sign in to Swipe</p>
+          </div>
+        </div>
+      {/if}
+      {#if profiles.length === 0}
+        <div class="flex h-full w-full items-center justify-center rounded-2xl bg-white shadow">
+          <p class="text-gray-500">No more profiles</p>
+        </div>
+      {:else}
+        {#each profiles as profile, i (profile.id)}
+          <div
+            bind:this={cardEl[i]}
+            class="absolute inset-0 origin-bottom rounded-2xl bg-gray-200 shadow-lg"
+            style="
                     background-image: url('{profile.image}');
                     background-size: cover;
                     background-position: center;
@@ -168,15 +171,17 @@
                 </div>
               </div>
             </div>
-            {/each}
-            <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[14vh] z-10 rounded-b-2xl bg-gradient-to-t from-black/30 to-transparent"></div>
-        {/if}
-        </div>
-    </main>
-    
-    <TextReveal text="Find your match" subtext="Swipe right on your next dormmate." />
-    <TwitterTemplate />
-    <MainInfoSection images={imgs} paragraphs={paras} />
-    <Footer />
+            <div
+              class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[14vh] rounded-b-2xl bg-gradient-to-t from-black/30 to-transparent"
+            ></div>
+          </div>
+        {/each}
+      {/if}
+    </div>
+  </main>
 
+  <TextReveal text="Find your match" subtext="Swipe right on your next dormmate." />
+  <TwitterTemplate />
+  <MainInfoSection images={imgs} paragraphs={paras} />
+  <Footer />
 </div>
