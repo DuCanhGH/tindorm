@@ -1,4 +1,4 @@
-import { pgSchema } from "drizzle-orm/pg-core";
+import { pgSchema, primaryKey } from "drizzle-orm/pg-core";
 
 export const boilermate = pgSchema("bm");
 
@@ -82,10 +82,14 @@ export const verification = boilermate.table("verification", (d) => ({
     .notNull(),
 }));
 
-export const userRating = boilermate.table("user_rating", (d)=> ({
-  userId: d.text("user_Id").primaryKey(),
-  reviewerId: d.text("reviewer_Id").primaryKey(),
-  star: d.text("star").notNull(),
-  review: d.text("review").notNull(),
-  isRoommate: d.text("is_roommate").notNull(),
-}));
+export const userRating = boilermate.table(
+  "user_rating",
+  (d) => ({
+    userId: d.text("user_Id"),
+    reviewerId: d.text("reviewer_Id"),
+    star: d.smallint("star").notNull(),
+    review: d.text("review").notNull(),
+    isRoommate: d.boolean("is_roommate").notNull(),
+  }),
+  (t) => [primaryKey({ columns: [t.userId, t.reviewerId] })]
+);

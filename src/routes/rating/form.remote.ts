@@ -61,10 +61,10 @@ export const review = form(ratingSchema, async () => {
 
   try {
     await db.insert(userRating).values({
-      userId: params.slug, // Who is being rated
+      userId: "", // Who is being rated
       reviewerId: locals.user?.id, // Who is rating
       star: Number(star), // make sure to coerce to number
-      review: review?.toString(),
+      review: review!.toString(),
       isRoommate: isRoomMate,
     });
 
