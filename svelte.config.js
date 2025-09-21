@@ -22,6 +22,9 @@ const config = {
     experimental: {
       remoteFunctions: true,
     },
+    serviceWorker: {
+      register: false,
+    },
   },
 };
 
