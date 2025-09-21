@@ -10,6 +10,7 @@
     type Message = {
       id: string;
       name: string;
+
     };
     type Profile = {
       name: string;
@@ -20,6 +21,7 @@
       location: string;
       bio: string;
       inbox: Message[]; 
+
       interests: string[];
       preferences: string;
       images: string[];
@@ -87,6 +89,7 @@
             <input type="date" class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.dateOfBirth} />
           </label>
           <label class="grid gap-1">
+
             <span class="text-xs font-medium text-gray-600">Age</span>
             <input type="number" min="18" class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.age} />
           </label>
@@ -133,6 +136,7 @@
             <span class="text-xs font-medium text-gray-600">Race</span>
             <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.race} />
           </label>
+
           <div class="flex justify-end">
             <button type="submit" class="rounded-full bg-pink-500 px-4 py-2 text-white shadow hover:bg-pink-600">Save</button>
           </div>

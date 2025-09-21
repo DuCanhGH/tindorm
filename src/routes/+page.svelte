@@ -179,6 +179,7 @@
     <main class="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-6 px-4 pb-16">
         <div class="relative mt-4 h-[70vh] w-full max-w-xl select-none mt-20">
         {#if false}
+
         <!-- lock cover -->
         <div class="absolute inset-0 z-40 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur">
           <div class="text-center text-white">
