@@ -18,6 +18,7 @@
   
     let activeTab: "candidates" | "rejects" = $state("candidates");
     const list = $derived(activeTab === "candidates" ? candidates : rejects);
+
   
     function viewProfile(id: string) {
         goto(`/profile/${encodeURIComponent(id)}`);
@@ -88,5 +89,6 @@
           </article>
         {/each}
       {/if}
+ 
     </div>
   </main>

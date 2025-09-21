@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Spring } from "svelte/motion";   
+  import { Spring } from "svelte/motion";
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import MainInfoSection from "../components/MainInfoSection.svelte";
@@ -10,23 +10,26 @@
   import FrontBalls from "../components/FrontBalls.svelte";
   let { data }: { data: import("./$types").PageData } = $props();
 
+  import { authClient } from "$lib/auth";
+
   const imgs = [
     "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=1470&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1470&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=1470&auto=format&fit=crop"
+    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=1470&auto=format&fit=crop",
   ];
+
   const paras = [
     {
-        title: "Why use tindorm?.",
-        content: "Finding a dormmate should be easy. But it's not. So we made it easier."
+      title: "Why use tindorm?.",
+      content: "Finding a dormmate should be easy. But it's not. So we made it easier.",
     },
     {
-        title: "How it works.",
-        content: "We'll help you find a dormmate by showing you profiles of other students who are looking for a dormmate."
+      title: "How it works.",
+      content: "We'll help you find a dormmate by showing you profiles of other students who are looking for a dormmate.",
     },
     {
-        title: "Who can use tindorm?",
-        content: "Anyone who is looking for a dormmate! Including Me!"
+      title: "Who can use tindorm?",
+      content: "Anyone who is looking for a dormmate! Including Me!",
     },
   ];
 
@@ -109,6 +112,8 @@
     y.set(0);
     rot.set(0);
   });
+
+  const session = authClient.useSession();
 </script>
 
 <div class="min-h-screen">
@@ -146,21 +151,22 @@
                     background-image: url('{profile.image}');
                     background-size: cover;
                     background-position: center;
-                    transform: translate3d({i === profiles.length - 1 ? x.current : 0}px, {i === profiles.length - 1 ? y.current : 0}px, 0) rotate({i === profiles.length - 1 ? rot.current : 0}deg);
+                    transform: translate3d({i === profiles.length - 1 ? x.current : 0}px, {i === profiles.length - 1
+              ? y.current
+              : 0}px, 0) rotate({i === profiles.length - 1 ? rot.current : 0}deg);
                     transition: {dragging && i === profiles.length - 1 ? 'none' : 'transform 220ms cubic-bezier(.2,.7,.2,1)'};
                 "
-                onpointerdown={i === profiles.length - 1 ? onPointerDown : undefined}
-                onpointermove={i === profiles.length - 1 ? onPointerMove : undefined}
-                onpointerup={i === profiles.length - 1 ? onPointerUp : undefined}
-            >
-                <div class="absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-                <div class="flex items-end justify-between">
-                    <div>
-                    <h2 class="text-2xl font-semibold">{profile.name}, {profile.age}</h2>
-                    <p class="mt-1 text-sm text-white/80">{profile.bio}</p>
-                    </div>
+            onpointerdown={i === profiles.length - 1 ? onPointerDown : undefined}
+            onpointermove={i === profiles.length - 1 ? onPointerMove : undefined}
+            onpointerup={i === profiles.length - 1 ? onPointerUp : undefined}
+          >
+            <div class="absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+              <div class="flex items-end justify-between">
+                <div>
+                  <h2 class="text-2xl font-semibold">{profile.name}, {profile.age}</h2>
+                  <p class="mt-1 text-sm text-white/80">{profile.bio}</p>
                 </div>
-                </div>
+              </div>
             </div>
             {/each}
             <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[14vh] z-10 rounded-b-2xl bg-gradient-to-t from-black/30 to-transparent"></div>
@@ -172,4 +178,5 @@
     <TwitterTemplate />
     <MainInfoSection images={imgs} paragraphs={paras} />
     <Footer />
+
 </div>

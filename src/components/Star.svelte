@@ -1,6 +1,7 @@
 <script lang="ts">
     let { fraction = 0, size = "1" } = $props(); // size: "1rem", "20px", etc.
     let pct = $derived(Math.max(0, Math.min(1, fraction)) * 100);
+
   </script>
   
   <div class="relative inline-block align-middle" style={`width:${size}rem;height:${size}rem;`}>

@@ -8,6 +8,7 @@
     age: number;
     gender: string;
     race: string;
+
     location: string;
     bio: string;
     interests: string[];
@@ -22,6 +23,7 @@
   let reviews = data.reviews as Review[];
   let canReview = data.canReview as boolean;
   let userId = data.userId as string;
+
   async function requestMatch() {
     try {
       await fetch("/api/match-request", {
@@ -61,6 +63,7 @@
             <p class="text-xs font-medium text-gray-600">Race</p>
             <p class="text-gray-900">{profile.race}</p>
           </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-xs font-medium text-gray-600">Age</p>
@@ -72,7 +75,7 @@
             </div>
             
           </div>
-          
+
         </div>
       </section>
 
@@ -103,6 +106,7 @@
       <button
         class="rounded-full bg-red-500 px-5 py-2 text-white shadow transition hover:bg-red-600"
         onpointerdown={requestMatch}
+
       >
         Request match
       </button>

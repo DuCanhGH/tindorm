@@ -4,6 +4,7 @@ export const load: PageLoad = async ({ params }) => {
   const profile = await getProfile(params.slug);
   const reviews = await getReviews(params.slug);
   return { profile, reviews, userId: params.slug, canReview: canReview(params.slug) };
+
 };
 
 const getProfile = (id: string) => {
@@ -18,6 +19,7 @@ const getProfile = (id: string) => {
           { id: "m2", name: "Taylor", message: "I'm good, thanks!" },
           { id: "m3", name: "Casey", message: "What are you up to?" }
         ],
+
         bio: "Hiking, coffee, and spontaneous weekend trips.",
         preferences: "Kind, curious, and loves live music.",
         interests: ["Hiking", "Photography", "Live Music", "Board Games"],
@@ -30,6 +32,7 @@ const getProfile = (id: string) => {
 const canReview = (id: string) => {
     return true;
 }
+
 const getReviews = (id: string) => {
     return [
         { id: "r1", user: "Jordan", rating: 5, text: "Super friendly and easy to talk to!" },

@@ -8,6 +8,20 @@
       "when": 1758397853760,
       "tag": "0000_stiff_dexter_bennett",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758403210270,
+      "tag": "0001_cute_shadow_king",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758409451409,
+      "tag": "0002_unknown_the_liberteens",
+      "breakpoints": true
     }
   ]
 }
