@@ -16,6 +16,7 @@
       age: number;
       gender: string;
       race: string;
+      dateOfBirth: string;
       location: string;
       bio: string;
       inbox: Message[]; 
@@ -86,6 +87,10 @@
             <input type="number" min="18" class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.age} />
           </label>
           <label class="grid gap-1">
+            <span class="text-xs font-medium text-gray-600">Date of Birth</span>
+            <input type="date" class="rounded-md border border-gray-300 px-3 py-2" min="1970-01-01" max="2025-10-20" bind:value={profile.dateOfBirth} />
+          </label>
+          <label class="grid gap-1">
             <span class="text-xs font-medium text-gray-600">Location</span>
             <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.location} />
           </label>
@@ -119,14 +124,6 @@
           <label class="grid gap-1">
             <span class="text-xs font-medium text-gray-600">Preferences</span>
             <textarea rows="4" class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.preferences} />
-          </label>
-          <label class="grid gap-1">
-            <span class="text-xs font-medium text-gray-600">Gender</span>
-            <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.gender} />
-          </label>
-          <label class="grid gap-1">
-            <span class="text-xs font-medium text-gray-600">Race</span>
-            <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.race} />
           </label>
           <div class="flex justify-end">
             <button type="submit" class="rounded-full bg-pink-500 px-4 py-2 text-white shadow hover:bg-pink-600">Save</button>

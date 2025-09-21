@@ -36,10 +36,13 @@
     </h2>
   
     <p bind:this={el} 
-      class={`mt-3 text-center text-gray-600
+      class={`mt-3 text-center text-white
         transition-all duration-700 ease-out delay-150
         ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
+          style="filter: drop-shadow(0 0 16px rgba(236, 72, 153, 0.45));"
+
     >
+    
       {subtext}
     </p>
   </section>
