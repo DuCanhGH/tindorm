@@ -43,6 +43,20 @@
       "when": 1758438406170,
       "tag": "0005_hot_venom",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1758445417230,
+      "tag": "0006_magenta_deadpool",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1758451900212,
+      "tag": "0007_parallel_blindfold",
+      "breakpoints": true
     }
   ]
 }
