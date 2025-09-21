@@ -1,2 +1,19 @@
 @import "tailwindcss";
 @plugin '@tailwindcss/typography';
+
+@theme {
+  --color-accent-dark: #8b7b47;
+  --color-accent-light: #cfb991;
+  --animate-checkbox-icon: tick 0.3s;
+  @keyframes tick {
+    0% {
+      clip-path: polygon(0% 0%, 0% 0%, 100% 100%, 0% 100%);
+    }
+    1% {
+      clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
+    }
+    100% {
+      clip-path: polygon(0% 0%, 100% 0%, 50% 100%, 0% 100%);
+    }
+  }
+}
