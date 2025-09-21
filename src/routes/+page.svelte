@@ -65,12 +65,12 @@
   const y = new Spring(0, { stiffness: 0.15, damping: 0.4 });
   const rot = new Spring(0, { stiffness: 0.12, damping: 0.35 });
 
-  let cardEl: HTMLDivElement | null = null;
+  let cardEl: HTMLDivElement[] = $state([]);
   let startX = 0;
   let startY = 0;
 
   function onPointerDown(e: PointerEvent) {
-    if (!cardEl) return;
+    if (cardEl.length === 0) return;
     dragging = true;
     (e.target as Element).setPointerCapture(e.pointerId);
     startX = e.clientX;
@@ -78,7 +78,7 @@
   }
 
   function onPointerMove(e: PointerEvent) {
-    if (!dragging) return;
+    if (!dragging || cardEl.length === 0) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     x.set(dx);
@@ -87,11 +87,13 @@
   }
 
   function onPointerUp() {
-    if (!dragging) return;
+    if (!dragging || cardEl.length === 0) return;
     dragging = false;
 
     let dismissed = false;
     const currentX = x.current;
+    const currentY = y.current;
+    const currentRot = rot.current;
 
     if (Math.abs(currentX) > 120) {
       // fling off-screen
@@ -141,7 +143,7 @@
 
     <main class="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-6 px-4 pb-16">
         <div class="relative mt-4 h-[70vh] w-full max-w-xl select-none">
-        {#if true}
+        {#if false}
         <!-- lock cover -->
             <div class="absolute inset-0 z-40 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur">
             <div class="text-center text-white">
@@ -156,7 +158,7 @@
         {:else}
             {#each profiles as profile, i (profile.id)}
             <div
-                bind:this={cardEl}
+                bind:this={cardEl[i]}
                 class="absolute inset-0 origin-bottom rounded-2xl bg-gray-200 shadow-lg"
                 style="
                     background-image: url('{profile.image}');
