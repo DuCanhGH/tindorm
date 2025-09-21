@@ -8,7 +8,7 @@
   import Footer from "../components/Footer.svelte";
   import FrontBalls from "../components/FrontBalls.svelte";
   import Preference from "../components/Preference.svelte";
-  import brand from "$lib/assets/favicon.svg";
+  import brand from "$lib/assets/4-removebg-preview.png";
   import { getSwipeList, swipe } from "./$fn.remote";
   import { SvelteSet } from "svelte/reactivity";
 
@@ -144,8 +144,8 @@
       >
         <nav class="flex items-center justify-between px-4 py-3">
           <a href="/" class="mr-8 ml-4 flex items-center gap-3">
-            <img src={brand} alt="Tindorm" class="h-8 w-8 rounded" />
-            <span class="text-lg font-bold tracking-wide text-white">Tindorm</span>
+            <img src={brand} alt="Tindorm" class="h-32 w-48 rounded" />
+            
           </a>
           <div class="flex w-full items-center justify-between gap-2">
             <div class="flex items-center gap-2">
