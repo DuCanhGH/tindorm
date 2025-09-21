@@ -11,14 +11,13 @@
       id: string;
       name: string;
 
-      message: string;
-
     };
     type Profile = {
       name: string;
       age: number;
       gender: string;
       race: string;
+      dateOfBirth: string;
       location: string;
       bio: string;
       inbox: Message[]; 
@@ -73,7 +72,6 @@
     <div class="min-h-0 flex-1 overflow-y-auto rounded-xl border border-gray-100 p-4">
       {#if current === "About"}
         <form class="grid grid-cols-1 gap-4" onsubmit={() => save('about', { name: profile.name, age: profile.age, location: profile.location, bio: profile.bio, gender: profile.gender, race: profile.race })}>
-
           <label class="grid gap-1">
             <span class="text-xs font-medium text-gray-600">Name</span>
             <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.name} />
@@ -85,6 +83,10 @@
           <label class="grid gap-1">
             <span class="text-xs font-medium text-gray-600">Race</span>
             <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.race} />
+          </label>
+          <label class="grid gap-1">
+            <span class="text-xs font-medium text-gray-600">Date of Birth</span>
+            <input type="date" class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.dateOfBirth} />
           </label>
           <label class="grid gap-1">
 
@@ -151,7 +153,6 @@
             </div>
           {/each}
         </div>
-
       {/if}
     </div>
   </div>

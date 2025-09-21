@@ -1,10 +1,15 @@
- 
+ import type { PageLoad } from "./$types";
+
  export const load: PageLoad = async () => {
     return {
         name: "Alex",
         age: 27,
         location: "San Francisco, CA",
         bio: "Hiking, coffee, and spontaneous weekend trips.",
+        inbox: [{id: "1", name: "John"}, {id: "2", name: "Jane"}],
+        dateOfBirth: "1990-01-01",
+        gender: "Male",
+        race: "Asian",
         preferences: "I'm looking for a woman who is kind, intelligent, and has a good sense of humor.",
         interests: ["Hiking", "Photography", "Live Music", "Board Games"],
         images: [
