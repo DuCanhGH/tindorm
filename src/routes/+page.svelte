@@ -4,8 +4,12 @@
   import { goto } from "$app/navigation";
   import MainInfoSection from "../components/MainInfoSection.svelte";
   import TextReveal from "../components/TextReveal.svelte";
-
+  import TwitterTemplate from "../components/TwitterTemplate.svelte";
   import Footer from "../components/Footer.svelte";
+  import type { PageLoad } from "./$types";
+  import FrontBalls from "../components/FrontBalls.svelte";
+  let { data }: { data: import("./$types").PageData } = $props();
+
   const imgs = [
     "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=1470&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1470&auto=format&fit=crop",
@@ -34,29 +38,7 @@
     image: string;
   };
 
-  const profiles = $state<Profile[]>([
-    {
-      id: "1",
-      name: "Alex",
-      age: 27,
-      bio: "Coffee addict. Weekend hiker. Amateur photographer.",
-      image: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=1470&auto=format&fit=crop",
-    },
-    {
-      id: "2",
-      name: "Sam",
-      age: 24,
-      bio: "Runner. Learner. Looking for the best tacos in town.",
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1470&auto=format&fit=crop",
-    },
-    {
-      id: "3",
-      name: "Riley",
-      age: 29,
-      bio: "Music festivals and board games.",
-      image: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=1470&auto=format&fit=crop",
-    },
-  ]);
+  const profiles = $state<Profile[]>(data.profiles as Profile[]);
 
   let dragging = $state(false);
   let activeId = $derived(profiles.at(-1)?.id);
@@ -131,7 +113,7 @@
 
 <div class="min-h-screen">
     <div class="pointer-events-none absolute inset-x-0 top-0 h-full rounded-t-2xl bg-gradient-to-b from-black/100 to-transparent"></div>
-    
+    <FrontBalls />
     <header class="relative mx-auto flex w-full z-50 max-w-5xl items-center justify-between px-4 py-4">
         <div class="flex items-center gap-2">
             <button onpointerdown={() => goto("/chats")} class="underline text-white font-bold underline-offset-2 rounded-full p-2 hover:bg-white hover:text-black">
@@ -185,9 +167,9 @@
         {/if}
         </div>
     </main>
-
+    
     <TextReveal text="Find your match" subtext="Swipe right on your next dormmate." />
-
+    <TwitterTemplate />
     <MainInfoSection images={imgs} paragraphs={paras} />
     <Footer />
 </div>

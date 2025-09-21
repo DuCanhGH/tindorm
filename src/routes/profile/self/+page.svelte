@@ -10,13 +10,15 @@
     type Message = {
       id: string;
       name: string;
-      message: string;
     };
     type Profile = {
       name: string;
       age: number;
+      gender: string;
+      race: string;
       location: string;
       bio: string;
+      inbox: Message[]; 
       interests: string[];
       preferences: string;
       images: string[];
@@ -32,18 +34,8 @@
         }
     }
 
-    const inbox = $state<Message[]>([
-      {
-        id: "1",
-        name: "Alex",
-        message: "Hey, how are you?",
-      },
-      {
-        id: "2",
-        name: "Sam",
-        message: "I'm good, thanks!",
-      }
-    ]);
+    const inbox = $state<Message[]>(profile.inbox);
+
     let selected = $state<Set<string>>(new Set());
     function toggle(tag: string) {
         const s = new Set(selected);
@@ -76,10 +68,18 @@
 
     <div class="min-h-0 flex-1 overflow-y-auto rounded-xl border border-gray-100 p-4">
       {#if current === "About"}
-        <form class="grid grid-cols-1 gap-4" onsubmit={() => save('about', { name: profile.name, age: profile.age, location: profile.location, bio: profile.bio })}>
+        <form class="grid grid-cols-1 gap-4" onsubmit={() => save('about', { name: profile.name, age: profile.age, location: profile.location, bio: profile.bio, gender: profile.gender, race: profile.race })}>
           <label class="grid gap-1">
             <span class="text-xs font-medium text-gray-600">Name</span>
             <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.name} />
+          </label>
+          <label class="grid gap-1">
+            <span class="text-xs font-medium text-gray-600">Gender</span>
+            <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.gender} />
+          </label>
+          <label class="grid gap-1">
+            <span class="text-xs font-medium text-gray-600">Race</span>
+            <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.race} />
           </label>
           <label class="grid gap-1">
             <span class="text-xs font-medium text-gray-600">Age</span>
@@ -120,10 +120,30 @@
             <span class="text-xs font-medium text-gray-600">Preferences</span>
             <textarea rows="4" class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.preferences} />
           </label>
+          <label class="grid gap-1">
+            <span class="text-xs font-medium text-gray-600">Gender</span>
+            <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.gender} />
+          </label>
+          <label class="grid gap-1">
+            <span class="text-xs font-medium text-gray-600">Race</span>
+            <input class="rounded-md border border-gray-300 px-3 py-2" bind:value={profile.race} />
+          </label>
           <div class="flex justify-end">
             <button type="submit" class="rounded-full bg-pink-500 px-4 py-2 text-white shadow hover:bg-pink-600">Save</button>
           </div>
         </form>
+      {:else if current === "Inbox"}
+        <div class="flex flex-col gap-2 ">
+          {#each inbox as m}
+            <div class="flex flex-row gap-2 border-t border-gray-100 pt-4 items-center justify-between">
+              <div class="flex flex-col gap-2">
+                <p>{m.name}</p>
+                <p>Wants to chat!</p>
+              </div>
+              <button class="rounded-full h-1/2 bg-pink-500 px-4 py-2 text-white shadow hover:bg-pink-600">Accept</button>
+            </div>
+          {/each}
+        </div>
       {/if}
     </div>
   </div>
