@@ -1,4 +1,4 @@
-import { SWIPE_TYPE } from "$lib/constants";
+import { SWIPE_TYPE } from "../../constants";
 import { ForeignKeyBuilder, type PgColumn, pgSchema, primaryKey, type AnyPgColumn, type UpdateDeleteAction, index } from "drizzle-orm/pg-core";
 
 export type ColumnsWithTable<TTableName extends string, TColumns extends PgColumn[]> = {
@@ -102,7 +102,6 @@ export const mergeApprovalSide = boilermate.enum("merge_approval_side", ["src", 
 export const mergeApproval = boilermate.table(
   "merge_approval",
   (d) => ({
-    id: d.bigserial("id", { mode: "number" }).primaryKey(),
     mergeRequestId: d
       .bigint("merge_request_id", { mode: "number" })
       .references(() => mergeRequest.id)

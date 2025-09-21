@@ -36,6 +36,13 @@
       "when": 1758424685247,
       "tag": "0004_loud_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1758438406170,
+      "tag": "0005_hot_venom",
+      "breakpoints": true
     }
   ]
 }
