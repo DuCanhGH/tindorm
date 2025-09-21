@@ -88,21 +88,24 @@
     </div>
 
     <!-- Bottom CTA -->
-    <form
-      class="mt-4 flex justify-end"
-      {...sendMergeRequest.enhance(async ({ form, submit }) => {
-        try {
-          await submit();
-          form.reset();
-          notify.push("Match request sent", "success");
-        } catch {
-          notify.push("Could not send request", "error");
-        }
-      })}
-    >
-      <input name="toUser" type="hidden" value={params.slug} />
-      <button type="submit" class="rounded-full bg-red-500 px-5 py-2 text-white shadow transition hover:bg-red-600"> Request match </button>
-    </form>
+    <div>
+      <form
+        class="mt-4 flex justify-end"
+        {...sendMergeRequest.enhance(async ({ form, submit }) => {
+          try {
+            await submit();
+            form.reset();
+            notify.push("Match request sent", "success");
+          } catch {
+            notify.push("Could not send request", "error");
+          }
+        })}
+      >
+        <input name="toUser" type="hidden" value={params.slug} />
+        <button type="submit" class="rounded-full bg-red-500 px-5 py-2 text-white shadow transition hover:bg-red-600"> Request match </button>
+      </form>
+      <a href = "/rating" class="rounded-full bg-red-500 px-5 py-2 text-white shadow transition hover:bg-red-600">Add Review</a>
+    </div> 
   </div>
   <ReviewSection {reviews} />
 </div>
