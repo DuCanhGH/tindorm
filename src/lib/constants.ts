@@ -1,0 +1,1 @@
+export const SWIPE_TYPE = ["left", "right"] as const;

@@ -22,6 +22,7 @@ const serwist = createSerwist({
   skipWaiting: true,
   navigationPreload: true,
   clientsClaim: true,
+  disableDevLogs: true,
   extensions: [new RuntimeCache(defaultCache)],
 });
 

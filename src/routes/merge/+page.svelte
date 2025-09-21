@@ -2,14 +2,12 @@
   import UserHeader from "../../components/UserHeader.svelte";
   import type { PageProps } from "./$types";
   import { resolve } from "$app/paths";
-  import { notify } from "$lib/store/notify";
-  import { sendMergeRequest } from "./$fn.remote";
 
-  let activeTab = $state<"candidates" | "rejects">("candidates");
+  let activeTab = $state<"sent" | "received">("sent");
 
   const { data }: PageProps = $props();
 
-  const list = $derived(activeTab === "candidates" ? data.candidates : data.rejects);
+  const list = $derived(activeTab === "sent" ? data.sent : data.received);
 </script>
 
 <UserHeader />
@@ -21,17 +19,17 @@
       <div class="flex items-center gap-2 rounded-xl bg-white p-1 shadow ring-1 ring-gray-100">
         <button
           class="flex-1 rounded-lg px-4 py-2 text-sm font-medium transition
-            {activeTab === 'candidates' ? 'bg-pink-500 text-white shadow' : 'text-gray-700 hover:bg-gray-50'}"
-          onpointerdown={() => (activeTab = "candidates")}
+            {activeTab === 'sent' ? 'bg-pink-500 text-white shadow' : 'text-gray-700 hover:bg-gray-50'}"
+          onpointerdown={() => (activeTab = "sent")}
         >
-          Candidates ({data.candidates.length})
+          Sent ({data.sent.length})
         </button>
         <button
           class="flex-1 rounded-lg px-4 py-2 text-sm font-medium transition
-            {activeTab === 'rejects' ? 'bg-pink-500 text-white shadow' : 'text-gray-700 hover:bg-gray-50'}"
-          onpointerdown={() => (activeTab = "rejects")}
+            {activeTab === 'received' ? 'bg-pink-500 text-white shadow' : 'text-gray-700 hover:bg-gray-50'}"
+          onpointerdown={() => (activeTab = "received")}
         >
-          Rejects ({data.rejects.length})
+          Received ({data.received.length})
         </button>
       </div>
     </div>
@@ -58,29 +56,15 @@
               </div>
               <div class="min-w-0">
                 <div class="flex items-baseline gap-2 text-gray-900">
-                  <h3 class="truncate text-lg font-semibold">{c.name}</h3>
+                  <h3 class="truncate text-lg font-semibold">{c.name} (stars icon) {Number(c.rating).toFixed(1)}</h3>
                   <span class="text-sm text-gray-500">Class of {c.profile?.classYear}</span>
                 </div>
-                <p class="truncate text-sm text-gray-600">{c.profile?.school?.name}</p>
+                <p class="truncate text-sm text-gray-600">{c.profile?.school?.name} {c.group?.name}</p>
                 <p class="mt-1 line-clamp-2 text-sm text-gray-700">{c.profile?.bio}</p>
               </div>
             </div>
 
-            <div class="flex flex-none items-center gap-3">
-              <form
-                {...sendMergeRequest.enhance(async ({ form, submit }) => {
-                  try {
-                    await submit();
-                    form.reset();
-                    notify.push("Match request sent", "success");
-                  } catch {
-                    notify.push("Could not send request", "error");
-                  }
-                })}
-              >
-                <input name="toUser" type="hidden" value={c.id} />
-                <button type="button" class="rounded-full bg-red-500 px-4 py-2 text-white shadow transition hover:bg-red-600"> Request match </button>
-              </form>
+            <div class="flex flex-none items-center">
               <a href={resolve(`/profile/${c.id}`)} class="rounded-full bg-pink-500 px-4 py-2 text-white shadow transition hover:bg-pink-600">
                 View profile
               </a>

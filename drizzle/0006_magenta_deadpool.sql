@@ -1,0 +1,1 @@
+ALTER TABLE "bm"."user_profile" ADD COLUMN "bio" text;
