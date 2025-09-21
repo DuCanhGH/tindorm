@@ -6,6 +6,9 @@
   type Profile = {
     name: string;
     age: number;
+    gender: string;
+    race: string;
+
     location: string;
     bio: string;
     interests: string[];
@@ -18,7 +21,8 @@
   let { data }: {  data: import("./$types").PageData} = $props();
   let profile = data.profile as Profile;
   let reviews = data.reviews as Review[];
-  
+  let canReview = data.canReview as boolean;
+  let userId = data.userId as string;
 
   async function requestMatch() {
     try {
@@ -51,20 +55,27 @@
             <p class="text-xs font-medium text-gray-600">Name</p>
             <p class="text-gray-900">{profile.name}</p>
           </div>
+          <div>
+            <p class="text-xs font-medium text-gray-600">Gender</p>
+            <p class="text-gray-900">{profile.gender}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-600">Race</p>
+            <p class="text-gray-900">{profile.race}</p>
+          </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-xs font-medium text-gray-600">Age</p>
               <p class="text-gray-900">{profile.age}</p>
-            </div>
-            <div>
               <p class="text-xs font-medium text-gray-600">Location</p>
               <p class="text-gray-900">{profile.location}</p>
+              <p class="text-xs font-medium text-gray-600">Bio</p>
+              <p class="text-gray-900">{profile.bio}</p>
             </div>
+            
           </div>
-          <div>
-            <p class="text-xs font-medium text-gray-600">Bio</p>
-            <p class="leading-relaxed text-gray-800">{profile.bio}</p>
-          </div>
+
         </div>
       </section>
 
@@ -86,6 +97,7 @@
       <section>
         <h2 class="mb-2 text-sm font-semibold text-gray-600">Preferences</h2>
         <p class="leading-relaxed text-gray-800">{profile.preferences}</p>
+
       </section>
     </div>
 
@@ -93,7 +105,8 @@
     <div class="mt-4 flex justify-end">
       <button
         class="rounded-full bg-red-500 px-5 py-2 text-white shadow transition hover:bg-red-600"
-        on:pointerdown={requestMatch}
+        onpointerdown={requestMatch}
+
       >
         Request match
       </button>

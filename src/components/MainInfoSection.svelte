@@ -11,6 +11,8 @@
     let dragging = $state(false);
     let startX = 0;
     let dx = $state(0);
+    let hovering = $state(false);
+    let timer: number | null = null;
   
     function clamp(n: number, min: number, max: number) {
       return Math.max(min, Math.min(max, n));
@@ -40,6 +42,16 @@
     function prev() {
       i = clamp(i - 1, 0, images.length - 1);
     }
+
+    function startAutoplay() {
+      if (timer != null) clearInterval(timer);
+      if (images.length <= 1) return;
+      timer = window.setInterval(() => {
+        if (!dragging && !hovering) {
+          i = (i + 1) % images.length;
+        }
+      }, 3000);
+    }
   
     // scroll-sync right panel with page scroll within this section
     function onScroll() {
@@ -58,13 +70,19 @@
   
     onMount(() => {
         window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
+        startAutoplay();
+        return () => {
+          window.removeEventListener("scroll", onScroll);
+          if (timer != null) clearInterval(timer);
+        };
     });
   </script>
   
   <section bind:this={sectionEl} class="mx-auto h-[70vh] my-12 w-full max-w-6xl gap-8 px-4 flex flex-row justify-between items-center">
     <!-- Left: swipe-like slideshow -->
-    <div class="relative h-[70vh] w-1/2 min-h-full select-none overflow-hidden rounded-2xl bg-black/5">
+    <div class="relative h-[70vh] w-1/2 min-h-full select-none overflow-hidden rounded-2xl bg-black/5"
+         onpointerenter={() => hovering = true}
+         onpointerleave={() => hovering = false}>
         <div
             class="absolute inset-0 h-full"
             style="
@@ -115,4 +133,4 @@
         {/each}
         </div>
     </div>
-  </section>
+</section>
