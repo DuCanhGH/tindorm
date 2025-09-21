@@ -17,3 +17,33 @@
     }
   }
 }
+
+@utility glass-effect {
+  & {
+    @apply border border-white/20 bg-white/10 backdrop-blur-xl;
+  }
+}
+
+@utility purdue-gradient {
+  & {
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 15%, #2d2419 35%, #3d3123 50%, #4a3c2a 65%, #cfb991 85%, #e6d7b3 100%);
+  }
+}
+
+@utility purdue-gold {
+  & {
+    background: linear-gradient(135deg, #cfb991 0%, #b1a172 50%, #8b7b47 100%);
+  }
+}
+
+@utility purdue-gold-reverse {
+  & {
+    background: linear-gradient(135deg, #8b7b47 0%, #b1a172 50%, #cfb991 100%);
+  }
+}
+
+@utility logo-glow {
+  & {
+    filter: drop-shadow(0 0 20px rgb(207 185 145 / 0.5));
+  }
+}

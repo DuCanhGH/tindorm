@@ -23,7 +23,7 @@
     onDestroy(() => io?.disconnect());
   </script>
   
-  <section bind:this={el} class="mx-auto max-w-5xl px-4 py-12">
+  <section class="mx-auto max-w-5xl px-4 py-12">
     <h2
       class={`text-center text-4xl md:text-6xl font-extrabold
         bg-gradient-to-r from-pink-500 via-fuchsia-500 to-orange-400
@@ -35,7 +35,7 @@
       {text}
     </h2>
   
-    <p
+    <p bind:this={el} 
       class={`mt-3 text-center text-gray-600
         transition-all duration-700 ease-out delay-150
         ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
